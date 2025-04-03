@@ -6,15 +6,18 @@ const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const multer = require('multer'); 
 const {upload} =require("./config/multer");
+const {dbConnect}= require('./config/database');
 const BookRouter=require('./router/bookRouter');
 const app = express();
-const allowedOrigins = [
-  process.env.FRONTEND_URL,
-  `${process.env.FRONTEND_URL}/`
-];
 
+// const allowedOrigins = [
+//   process.env.FRONTEND_URL,
+//   `${process.env.FRONTEND_URL}/`
+// ];
+
+dbConnect();
 app.use(cors({
-  origin: allowedOrigins,
+  origin: '*',
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
