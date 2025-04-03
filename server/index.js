@@ -5,7 +5,8 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const multer = require('multer'); 
-const {upload} =require("./config/multer")
+const {upload} =require("./config/multer");
+const BookRouter=require('./router/bookRouter');
 const app = express();
 const allowedOrigins = [
   process.env.FRONTEND_URL,
@@ -28,6 +29,8 @@ const { userRoute } = require("./router/userRoute");
 const {geminiRoute}=require("./router/geminiRoute");
 app.use("/api/user", userRoute);
 app.use("/api/gemini",geminiRoute);
+app.use("/api/books",BookRouter);
+
 
 app.get('/', (req, res) => {
   res.send('Hello World!');
