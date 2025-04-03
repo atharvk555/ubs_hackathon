@@ -4,7 +4,9 @@ const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
 const SECRET_KEY = process.env.JWT_SECRET;
 const handelSignIn=async (req, res) => {
+    try{
     const { email, password } = req.body;
+    console.log(req.body);
     const user = await User.findOne({ email });
   
     if (!user) {
@@ -20,7 +22,10 @@ const handelSignIn=async (req, res) => {
       expiresIn: "48h",
     });
   
-    res.json({ token });
+    return res.status(200).json({ user,token });
+  }catch(err){
+    return res.status(500).json({ message: "Server error", error });
+  }
 }
 const handelRegisterUser = async (req, res) => {
     try {

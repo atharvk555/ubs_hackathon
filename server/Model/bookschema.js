@@ -7,9 +7,9 @@ const bookschema = new mongoose.Schema({
      Name : {
         type: String , 
      }, 
-     Authors : [{
+     Authors : {
          type: String , 
-     }], 
+     }, 
      Category:{
         type:String
      },

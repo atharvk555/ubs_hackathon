@@ -1,19 +1,31 @@
 import React, { useState } from 'react';
 import { Book, Mail, Lock, UserCheck } from 'lucide-react';
-import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Backend_url } from '../config';
 
 export const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const navigate=useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try{
-      const res=await axios.post(`${Backend_url}/api/user/sigin`,{email,password})
+      const res=await axios.post(`${Backend_url}/api/user/signin`,{email,password})
+      const cur_role=res?.data?.user.role;
+      console.log(res)
       if(res){
         localStorage.setItem('token',res.data.token)
+      }
+      if(cur_role==='donor'){
+        navigate('/donor_dashboard')
+      }
+      if(cur_role==='school'){
+        navigate('/school_dashboard')
+      }
+      if(cur_role==='volunteer'){
+        navigate('/volunteer_dashboard')
       }
     }
     catch(e){

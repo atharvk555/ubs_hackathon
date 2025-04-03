@@ -92,7 +92,11 @@ export const Donor_Dashboard = () => {
             }));
     
             // Wait for state update before submitting
-            const response=axios.post(`${Backend_url}/api/donor/add_book`,formData);
+            const response=axios.post(`${Backend_url}/api/donor/add_book`,formData,{
+                headers:{
+                    Authorization:localStorage.getItem('token')
+                }
+            });
 
             setTimeout(() => {
                 console.log('Book donation submitted:', formData);

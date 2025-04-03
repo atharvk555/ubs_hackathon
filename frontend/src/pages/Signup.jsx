@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Book, Mail, Lock, UserCheck } from 'lucide-react';
-import { Link} from 'react-router-dom';
+import { Link, useNavigate} from 'react-router-dom';
 
 
 export const Signup = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [role, setRole] = useState('');
+    const navigate=useNavigate()
     
     const handleSubmit = async (e) => {
       e.preventDefault();
@@ -15,6 +16,7 @@ export const Signup = () => {
         if(res){
           localStorage.setItem('token',res.data.token)
         }
+        navigate('/login')
       }catch(e){
         console.log(e);
       }
