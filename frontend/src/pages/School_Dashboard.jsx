@@ -121,7 +121,9 @@ export const School_Dashboard = () => {
               <span className="absolute top-0 right-0 h-4 w-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">3</span>
             </button>
             <div className="w-px bg-gray-300"></div>
-            <button className="p-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center">
+            <button className="p-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center" onClick={()=>{
+                navigate('/request')
+            }}>
               <Book className="h-5 w-5 mr-2" />
               Request Books
             </button>

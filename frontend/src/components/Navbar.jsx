@@ -1,6 +1,6 @@
 import React from 'react';
 import { Book } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 export const Navbar = ({ cur_role }) => {
     const navigate = useNavigate();

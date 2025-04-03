@@ -9,6 +9,7 @@ import { School_Dashboard } from './pages/School_Dashboard';
 import { Volunteer_Dashboard } from './pages/Volunteer_Dashboard';
 import { Search } from './pages/Search';
 import { Books } from './pages/Books';
+import { Request } from './pages/Request';
 
 const getTokenData = () => {
   const token = localStorage.getItem('token');
@@ -41,6 +42,7 @@ function App() {
         <Route path='/signup' element={<Signup />} />
         <Route path='/search' element={<Search />}></Route>
         <Route path='/book/:id' element={<Books />}></Route>
+        <Route path='/request' element={<Request />}></Route>
         <Route path='/update_profile' element={
           <ProtectedRoute>
             <Update_Profile />

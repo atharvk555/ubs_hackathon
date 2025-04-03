@@ -14,20 +14,14 @@ const SearchResultsAction = () => {
             Didn't find what you were looking for?
           </h3>
           <p className="text-yellow-700 mb-4">
-            Search results may not meet your expectations. You can verify a specific news article or publish your own verified news.
-          </p>
+            You can make a request if we find a donor then we will reach you soon.    
+        </p>
           <div className="flex flex-col sm:flex-row gap-3">
             <button 
-              onClick={() => navigate('/verify')}
+              onClick={() => navigate('/request')}
               className="flex-1 bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition duration-200 text-center"
             >
-              Verify News
-            </button>
-            <button 
-              onClick={() => navigate('/publish')}
-              className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-200 text-center"
-            >
-              Publish News
+              Request Book
             </button>
           </div>
         </div>
