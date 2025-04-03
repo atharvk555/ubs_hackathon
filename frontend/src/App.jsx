@@ -7,6 +7,8 @@ import { jwtDecode } from 'jwt-decode';
 import { Donor_Dashboard } from './pages/Donor_Dashboard';
 import { School_Dashboard } from './pages/School_Dashboard';
 import { Volunteer_Dashboard } from './pages/Volunteer_Dashboard';
+import { Search } from './pages/Search';
+import { Books } from './pages/Books';
 
 const getTokenData = () => {
   const token = localStorage.getItem('token');
@@ -37,6 +39,8 @@ function App() {
         <Route path='/' element={<Home />} />
         <Route path='/login' element={<Login />} />
         <Route path='/signup' element={<Signup />} />
+        <Route path='/search' element={<Search />}></Route>
+        <Route path='/book/:id' element={<Books />}></Route>
         <Route path='/update_profile' element={
           <ProtectedRoute>
             <Update_Profile />
@@ -48,9 +52,9 @@ function App() {
           // </RoleBasedRoute>
         } />
         <Route path='/school_dashboard' element={
-          <RoleBasedRoute allowedRole="school">
+          // <RoleBasedRoute allowedRole="school">
             <School_Dashboard />
-          </RoleBasedRoute>
+          // </RoleBasedRoute>
         } />
         <Route path='/volunteer_dashboard' element={
           <RoleBasedRoute allowedRole="volunteer">
