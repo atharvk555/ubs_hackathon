@@ -21,7 +21,7 @@ const addbook = async (req, res) => {
     });
   } catch (err) {
     res.send({
-      message: err,
+      message: err.message,
     });
   }
 };
@@ -44,7 +44,7 @@ const get_book_by_id= async(req,res)=>{
         
         res.send({
             status : 500, 
-            message:"Some Internal Server Error"
+            message:err.message
         })
 
     }
