@@ -75,7 +75,7 @@ const addBookToInventory = async (req, res) => {
     }
 
     const { book_title, author_name, publisher, book_image, quantity, condition } = req.body;
-
+    console.log(req.body)
     if (!book_title || !author_name || !publisher || !book_image || !quantity || !condition) {
       return res.status(400).json({ message: "All fields are required" });
     }

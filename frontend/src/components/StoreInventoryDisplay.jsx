@@ -1,26 +1,33 @@
 import React, { useRef } from 'react';
 import { MapPin, Book, Check, Star, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import { Backend_url } from '../config';
+import axios from 'axios';
 
 export const StoreInventoryDisplay = ({ storeData }) => {
-  const navigate = useNavigate();
+  const navigate = useNavigate();  
+  const { id: bookId } = useParams(); // Extract book ID from URL params
 
-  const handleRequestBook = (bookId, storeId) => {
-    console.log(`Requesting book ${bookId} from store ${storeId}`);
+  const handleRequestBook = async (item_id, storeId) => {
+    const response=await axios.post(`${Backend_url}/api/school/inventory_request`,{Inventory_id:item_id,Store_id:storeId},{
+      headers:{
+        Authorization:localStorage.getItem('token')
+      }}
+    )
+    console.log(response);
+    console.log(`Requesting book ${item_id} from store ${storeId}`);
   };
 
   const renderConditionStars = (condition) => {
-    // Change from 10 stars to 5 stars for better UI
     const maxStars = 5;
-    // Convert the 10-scale to 5-scale
     const filledStars = Math.round((Math.min(Math.max(condition, 0), 10) / 10) * maxStars);
-    
+
     return (
       <div className="flex items-center">
         {[...Array(maxStars)].map((_, index) => (
           <Star 
             key={index} 
-            size={12} // Reduced star size
+            size={12}
             className={index < filledStars ? "text-yellow-500 fill-yellow-500" : "text-gray-300"} 
           />
         ))}
@@ -29,7 +36,13 @@ export const StoreInventoryDisplay = ({ storeData }) => {
     );
   };
 
-  if (!storeData || storeData.length === 0) {
+  // Filter stores to only include inventories that have the matching book
+  const filteredStores = storeData?.map(store => ({
+    ...store,
+    inventory: store.inventory.filter(item => item.book === bookId) // Only keep matching books
+  })).filter(store => store.inventory.length > 0); // Remove stores with empty inventory after filtering
+
+  if (!filteredStores || filteredStores.length === 0) {
     return (
       <div className="text-center py-8">
         <p className="text-gray-600">No stores found with this book in inventory.</p>
@@ -37,11 +50,13 @@ export const StoreInventoryDisplay = ({ storeData }) => {
     );
   }
 
+  // console.log(storeData.inventory.id)
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h2 className="text-2xl font-bold text-gray-800 mb-6">Available Stores</h2>
       
-      {storeData.map((store) => {
+      {filteredStores.map((store) => {
         const scrollRef = useRef(null);
 
         const scrollLeft = () => {
@@ -134,7 +149,7 @@ export const StoreInventoryDisplay = ({ storeData }) => {
                     
                     {/* Request Button */}
                     <button 
-                      onClick={() => handleRequestBook(item.book, store._id)}
+                      onClick={() => handleRequestBook(item._id, store._id)}
                       className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center justify-center"
                     >
                       Request Book <Check className="ml-2 h-4 w-4" />

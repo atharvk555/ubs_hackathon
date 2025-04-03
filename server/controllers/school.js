@@ -1,6 +1,7 @@
 const Book = require('../Model/bookschema');
 const Store=require("../models/storeSchema");
 const mongoose=require('mongoose');
+const BookInventory=require("../models/BookInventorySchema");
 // const Donors= require('../Model/Donor');
 const axios = require("axios");
 const Requests=require('../models/requestSchema');
@@ -40,32 +41,51 @@ const getBooks = async (req, res) => {
     const books = Book.find({});
     return res.send( books)
   }
+//   function to create invertory request
+const create_request = async (req, res) => {
+    try {
+      const School_id = req.user.id;
+      const { Inventory_id, Store_id } = req.body;
+      
+      console.log("Request Data:", req.body);
+      console.log("School ID:", School_id, "Inventory ID:", Inventory_id, "Store ID:", Store_id);
+  
+      // Create the request with correct field assignments
+      const newrequest = new Requests({
+        InventoryId: Inventory_id,
+        StoreId: Store_id,  // ✅ Fixed
+        School_id: School_id,  // ✅ Fixed
+        status: "pending",
+        request_Date: new Date(),
+        expire_Date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+      });
+  
+      console.log("New Request Object:", newrequest);
+  
+      // Save the request to the database
+      await newrequest.save();
+  
+      return res.status(201).json({
+        message: "Successfully created the request",
+        newrequest
+      });
+  
+    } catch (err) {
+      console.error("Error creating request:", err);
+      return res.status(500).json({ message: err.message });
+    }
+  };
 
-  const create_request = async(req, res)=>{
-     
+//   function to get all requests
+const GetAllRequests=async(req,res)=>{
     try{
-    const {Inventory_id,School_id,Store_id}= req.body;
-    const newrequest = new Requests({
-        InventoryId:Inventory_id,
-        StoreId:School_id,
-        School_id:Store_id,
-        status:"Pending",
-        request_Date: Date.now(),
-        expire_Date :new Date(Date.now() + 7*24*60* 60 * 1000),
-    })
-    await newrequest.save();
-    res.send({
-         message: " Succesfully created the request ",
-         newrequest
-    });
-} 
-  catch(err){
-    return res.send({
-        message : err.message
-    })
-  }
-  }
 
+    }
+    catch(err){
+
+    }
+}
+// function to complete inventory request
 const getLatLonFromAddress = async (address) => {
 
     try {
@@ -106,6 +126,7 @@ const haversineDistance = (lat1, lon1, lat2, lon2) => {
 const bookSearchInStore = async (req, res) => {
     try {
       const { bookId ,long,lat} = req.body; // Get bookId from request
+      console.log(req.body,bookId,long,lat);
       if (!bookId) {
         return res.status(400).json({ success: false, message: "Book ID is required" });
       }
@@ -123,11 +144,11 @@ const bookSearchInStore = async (req, res) => {
   
       // Find all stores with inventory and populate inventory details
       const stores = await Store.find({ inventory: { $exists: true, $ne: [] } }).populate("inventory");
-  
+        console.log(stores);
       // Filter stores where at least one inventory item has the given bookId
       const matchingStores = stores.filter(store =>
-        store.inventory.some(inv => inv.book.toString() == bookId)
-      );
+        store.inventory.some(inv => inv.book && inv.book.toString() === bookId)
+    );
     //   i want to modify the store here----------
     // console.log(long,lat);
     const storesWithDistance = matchingStores.map(store => {
@@ -156,4 +177,4 @@ const bookSearchInStore = async (req, res) => {
     }
   };
 
-module.exports = {getBooks,create_request,getallbooks,bookSearchInStore};
+module.exports = {getBooks,create_request,getallbooks,bookSearchInStore,GetAllRequests};

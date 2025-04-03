@@ -12,7 +12,7 @@ export const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try{
-      const res=await axios.post(`${Backend_url}/api/user/signin`,{email,password})
+      const res= await axios.post(`${Backend_url}/api/user/signin`,{email,password})
       const cur_role=res?.data?.user.role;
       console.log(res)
       if(res){

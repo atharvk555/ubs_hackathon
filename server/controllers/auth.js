@@ -18,7 +18,7 @@ const handelSignIn=async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials" });
     }
   
-    const token = jwt.sign({ _id: user.id, email: user.email, role: user.role }, SECRET_KEY, {
+    const token =await jwt.sign({ _id: user.id, email: user.email, role: user.role }, SECRET_KEY, {
       expiresIn: "48h",
     });
   

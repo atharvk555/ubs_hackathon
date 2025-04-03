@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 // const School = require('../Model/School');
-const { request } = require('../router/schoolRouter');
 
 const requestschema= new mongoose.Schema({
      InventoryId:{
@@ -13,6 +12,9 @@ const requestschema= new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId, ref: "School"
      },
      status:{
+        type:String,
+     },
+     success_image:{
         type:String,
      },
      request_Date:{
