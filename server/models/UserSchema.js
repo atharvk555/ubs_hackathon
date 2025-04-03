@@ -27,6 +27,12 @@ const UserSchema = new mongoose.Schema({
   ,address:{
     type:String,
   }
+  ,longitude:{
+    type:String,
+  },
+  latitide:{
+    type:String,
+  }
 }, { timestamps: true });
 
 module.exports = mongoose.model("User", UserSchema);

@@ -3,14 +3,13 @@ const Store=require("../models/storeSchema");
 const mongoose=require('mongoose');
 // const Donors= require('../Model/Donor');
 const axios = require("axios");
-const request=require('../Model/requestschema');
+const Requests=require('../models/requestSchema');
 
 const getBooks = async (req, res) => {
 
     try {
 
       const { Name, Publisher, Authors, current_address } = req.body;
-    
     //   const coords = await getLatLonFromAddress(current_address);
     //   console.log(coords); // { lat: 28.6139, lon: 77.2090 }
 
@@ -45,14 +44,11 @@ const getBooks = async (req, res) => {
   const create_request = async(req, res)=>{
      
     try{
-    const {Inventory_id,School_id,Bank_id}= req.body;
-    const i_id=new mongoose.Types.ObjectId(Inventory_id);
-    const s_id=new mongoose.Types.ObjectId(School_id);
-    const b_id=new mongoose.Types.ObjectId(Bank_id);
-    const newrequest = new request({
-        InventoryId:i_id,
-        StoreId:b_id,
-        School_id:b_id,
+    const {Inventory_id,School_id,Store_id}= req.body;
+    const newrequest = new Requests({
+        InventoryId:Inventory_id,
+        StoreId:School_id,
+        School_id:Store_id,
         status:"Pending",
         request_Date: Date.now(),
         expire_Date :new Date(Date.now() + 7*24*60* 60 * 1000),

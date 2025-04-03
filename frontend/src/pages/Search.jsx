@@ -36,40 +36,35 @@ export const Search = () => {
                     Authors: author || undefined,
                     Publisher: publisher || undefined
                 };
-                
+                console.log(requestBody);
                 // Using POST request since you're sending data in request body
-                // const response = await axios.post(
-                //     `${Backend_url}/api/school/get-books`, 
-                //     requestBody,
-                //     {
-                //         headers: {
-                //             Authorization: localStorage.getItem("token"),
-                //             'Content-Type': 'application/json'
-                //         }
-                //     }
-                // );
+                const response = await axios.post(
+                    `${Backend_url}/api/school/get-books`, 
+                    requestBody
+                );
                 
-                // console.log("Search results:", response.data.books || response.data);
-                setBooks([
-                    {
-                        _id: "1",
-                        name: "The Great Gatsby",
-                        authors: "F. Scott Fitzgerald",
-                        publisher: "Scribner"
-                    },
-                    {
-                        _id: "2",
-                        name: "1984",
-                        authors: "George Orwell",
-                        publisher: "Secker & Warburg"
-                    },
-                    {
-                        _id: "3",
-                        name: "To Kill a Mockingbird",
-                        authors: "Harper Lee",
-                        publisher: "J.B. Lippincott & Co."
-                    }
-                ]);
+                // console.log("Search results:", response.data);
+                setBooks(response?.data)
+                // setBooks([
+                //     {
+                //         _id: "1",
+                //         name: "The Great Gatsby",
+                //         authors: "F. Scott Fitzgerald",
+                //         publisher: "Scribner"
+                //     },
+                //     {
+                //         _id: "2",
+                //         name: "1984",
+                //         authors: "George Orwell",
+                //         publisher: "Secker & Warburg"
+                //     },
+                //     {
+                //         _id: "3",
+                //         name: "To Kill a Mockingbird",
+                //         authors: "Harper Lee",
+                //         publisher: "J.B. Lippincott & Co."
+                //     }
+                // ]);
                 setLoading(false);
 
                 // setBooks(response.data.books || []);
@@ -134,9 +129,9 @@ export const Search = () => {
                                     <tbody className="divide-y divide-gray-200">
                                         {books.map(book => (
                                             <tr key={book._id} className="hover:bg-gray-50 cursor-pointer" onClick={() => handleBookClick(book._id)}>
-                                                <td className="px-4 py-3 font-medium text-gray-800">{book.name}</td>
-                                                <td className="px-4 py-3 text-sm text-gray-600">{book.authors}</td>
-                                                <td className="px-4 py-3 text-sm">{book.publisher}</td>
+                                                <td className="px-4 py-3 font-medium text-gray-800">{book?.Name}</td>
+                                                <td className="px-4 py-3 text-sm text-gray-600">{book?.Authors}</td>
+                                                <td className="px-4 py-3 text-sm">{book?.Publisher}</td>
                                                 <td className="px-4 py-3 text-right">
                                                     <button 
                                                         className="text-blue-600 hover:text-blue-800 text-sm font-medium"
