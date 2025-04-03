@@ -66,7 +66,7 @@ const AddBookToDataBase = async (book_title, author_name, publisher, book_image)
     return null;
   }
 };
-
+// fucntion to get the caterogy
 const addBookToInventory = async (req, res) => {
   try {
     const userId = req?.user?.id;
@@ -79,7 +79,9 @@ const addBookToInventory = async (req, res) => {
     if (!book_title || !author_name || !publisher || !book_image || !quantity || !condition) {
       return res.status(400).json({ message: "All fields are required" });
     }
-
+    //  here is the function to get the
+     
+    // --------------------------------
     // Create a book entry
     const book1 = await AddBookToDataBase(book_title, author_name, publisher, book_image);
     if (!book1) {

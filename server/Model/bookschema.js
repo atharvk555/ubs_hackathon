@@ -13,8 +13,7 @@ const bookschema = new mongoose.Schema({
      Category:{
         type:String
      },
-     donors: [{ type: mongoose.Schema.Types.ObjectId, ref: "Donor" }],
-
+     donors: [{ type: mongoose.Schema.Types.ObjectId, ref: "Store" }],
      Grade_level:{
      type: Number,
      },

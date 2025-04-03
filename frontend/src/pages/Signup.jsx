@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Book, Mail, Lock, UserCheck } from 'lucide-react';
 import { Link, useNavigate} from 'react-router-dom';
+import { Backend_url } from '../config';
+import axios from 'axios'
 
 
 export const Signup = () => {
@@ -12,10 +14,12 @@ export const Signup = () => {
     const handleSubmit = async (e) => {
       e.preventDefault();
       try{
-        const res=await axios.post(`${Backend_url}/api/user/signup`,{email,password,role})
-        if(res){
-          localStorage.setItem('token',res.data.token)
-        }
+        console.log({email,password,role});
+        await axios.post(`${Backend_url}/api/user/signup`,{email,password,role})
+        // console.log(res)
+        // if(res){
+        //   localStorage.setItem('token',res.data.token)
+        // }
         navigate('/login')
       }catch(e){
         console.log(e);

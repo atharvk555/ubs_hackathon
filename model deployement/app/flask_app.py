@@ -12,7 +12,7 @@ app = Flask(__name__)
 reader = easyocr.Reader(["en"])
 
 # Load saved model
-MODEL_PATH = "./app/book_genre_classifier"
+MODEL_PATH = "./model deployement/book_genre_classifier"
 device = 0 if torch.cuda.is_available() else -1
 
 model = AutoModelForSequenceClassification.from_pretrained(MODEL_PATH)

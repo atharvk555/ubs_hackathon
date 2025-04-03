@@ -33,12 +33,14 @@ const {donorRouter}=require("./router/donorRouter");
 const BookRouter=require('./router/bookRouter');
 const {storeRoute}=require("./router/storeRouter");
 const {s3Router}=require("./router/s3Router");
+const schoolRouter=require("./router/schoolRouter");
 app.use("/api/user", userRoute);
 app.use("/api/gemini",geminiRoute);
 app.use("/api/donor",donorRouter);
 app.use("/api/books",BookRouter);
 app.use("/api/store",storeRoute);
-app.use("/api/s3/",s3Router)
+app.use("/api/s3/",s3Router);
+app.use("/api/school",schoolRouter);
 
 app.get('/', (req, res) => {
   res.send('Hello World!');
