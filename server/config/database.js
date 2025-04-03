@@ -7,4 +7,5 @@ const dbConnect=async ()=>{
     .catch((error)=>{console.log("Error in connecting database, ERROR: ",error)});
 }
 
+
 module.exports={dbConnect};
