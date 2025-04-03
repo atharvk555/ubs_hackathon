@@ -8,13 +8,13 @@ const multer = require('multer');
 const {upload} =require("./config/multer");
 const {dbConnect}=require("./config/database");
 const app = express();
-const allowedOrigins = [
-  process.env.FRONTEND_URL,
-  `${process.env.FRONTEND_URL}/`
-];
 
+// const allowedOrigins = [
+//   process.env.FRONTEND_URL,
+//   `${process.env.FRONTEND_URL}/`
+// ];
 app.use(cors({
-  origin: allowedOrigins,
+  origin: '*',
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
@@ -30,9 +30,15 @@ dbConnect();
 const { userRoute } = require("./router/userRoute");
 const {geminiRoute}=require("./router/geminiRoute");
 const {donorRouter}=require("./router/donorRouter");
+const BookRouter=require('./router/bookRouter');
+const {storeRoute}=require("./router/storeRouter");
+const {s3Router}=require("./router/s3Router");
 app.use("/api/user", userRoute);
 app.use("/api/gemini",geminiRoute);
 app.use("/api/donor",donorRouter);
+app.use("/api/books",BookRouter);
+app.use("/api/store",storeRoute);
+app.use("/api/s3/",s3Router)
 
 app.get('/', (req, res) => {
   res.send('Hello World!');

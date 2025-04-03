@@ -1,6 +1,27 @@
 const User = require("../models/UserSchema");
 const bcrypt = require("bcryptjs");
-
+const jwt = require("jsonwebtoken");
+const dotenv = require("dotenv");
+const SECRET_KEY = process.env.JWT_SECRET;
+const handelSignIn=async (req, res) => {
+    const { email, password } = req.body;
+    const user = await User.findOne({ email });
+  
+    if (!user) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
+  
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
+  
+    const token = jwt.sign({ _id: user.id, email: user.email, role: user.role }, SECRET_KEY, {
+      expiresIn: "48h",
+    });
+  
+    res.json({ token });
+}
 const handelRegisterUser = async (req, res) => {
     try {
       const { email, password, role } = req.body;
@@ -56,4 +77,4 @@ const handelRegisterUser = async (req, res) => {
       res.status(500).json({ message: "Server error", error });
     }
   };
-module.exports={handelRegisterUser,handelUpdateUserProfile};
+module.exports={handelRegisterUser,handelUpdateUserProfile,handelSignIn};

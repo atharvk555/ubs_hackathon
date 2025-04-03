@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-
 const BookInventorySchema = new mongoose.Schema({
   book: { 
     type: mongoose.Schema.Types.ObjectId, 
@@ -12,13 +11,16 @@ const BookInventorySchema = new mongoose.Schema({
     min: 1 
   },
   condition: { 
-    type: String, 
-    enum: ["New", "Like New", "Good", "Fair", "Poor"], 
+    type: Number, 
+    enum:[1,2,3,4,5,6,7,8,9,10],
     required: true 
+  },
+  images:{
+    type:String,
   },
   addedBy: { 
     type: mongoose.Schema.Types.ObjectId, 
-    ref: "User", 
+    ref: "Donor", 
     required: true 
   },
 }, { timestamps: true });

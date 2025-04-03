@@ -6,10 +6,6 @@ const DonorSchema = new mongoose.Schema({
     ref: "User", 
     required: true 
   },
-  location: { 
-    type: String, 
-    required: true 
-  },
   booksDonated: { 
     type: Number, 
     default: 0 

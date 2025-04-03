@@ -1,5 +1,6 @@
 const express=require('express');
-const {addBookToInventory}=require("../controllers/donor");
+const {addBookToInventory,createDoner}=require("../controllers/donor");
 const donorRouter=express.Router();
-donorRouter.post("/add_book",addBookToInventory);
+const {verifyToken}=require("../middleware/auth");
+donorRouter.post("/add_book",verifyToken,addBookToInventory);
 module.exports={donorRouter};
