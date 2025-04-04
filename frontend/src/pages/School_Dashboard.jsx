@@ -5,22 +5,60 @@ import {
 } from "lucide-react";
 import { Navbar } from '../components/Navbar';
 import { useNavigate, useLocation } from 'react-router-dom';
-
+import axios from 'axios';
+import { Backend_url } from '../config';
 export const School_Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  
   // Search states - keeping the existing search logic
   const [titleQuery, setTitleQuery] = useState("");
   const [authorQuery, setAuthorQuery] = useState("");
   const [publisherQuery, setPublisherQuery] = useState("");
   const [searchError, setSearchError] = useState("");
-  
+  // const [allRequests,setAllRequests]=useState([]);
   // Changed the activeTab to start with "pending" instead of "available"
   const [activeTab, setActiveTab] = useState("pending");
+  const [pendingRequests,setPending]=useState([]);
+  const [approvedRequests,setAccepted]=useState([]);
+  const [completedRequests,setDelivered]=useState([]);
+  async function getAllRequests(){
+    try{
+      const response=await axios.post(`${Backend_url}/api/school/get_all_requests`,{},{
+        headers: {
+          Authorization: localStorage.getItem('token')
+        }
+      })
+      // console.log(response?.data?.inventory);
+      // setAllRequests(response?.data?.inventory);
+      const allRequests=response?.data?.inventory;
+      console.log(allRequests);
+      const pendingRequests = allRequests.filter(req => req.status === "pending"||req.status === "Pending");
+      const acceptedRequests = allRequests.filter(req => req.status === "approved"||req.status === "Approved");
+      const deliveredRequests = allRequests.filter(req => req.status === "complete"||req.status === "Completed");
   
+      setPending(pendingRequests);
+      setAccepted(acceptedRequests);
+      setDelivered(deliveredRequests);
+      // console.log(response);
+    }
+    catch(err){
+      console.log(err);
+    }
+  }
+  // useEffect(()=>{
+  //   const pendingRequests = allRequests.filter(req => req.status === "pending");
+  //   const acceptedRequests = allRequests.filter(req => req.status === "approved");
+  //   const deliveredRequests = allRequests.filter(req => req.status === "complete");
+
+  //   setPending(pendingRequests);
+  //   setAccepted(acceptedRequests);
+  //   setDelivered(deliveredRequests);
+  // },[allRequests])
+
+  // console.log(pendingRequests,approvedRequests,completedRequests)
   // Parse URL params on component mount
   useEffect(() => {
+    getAllRequests();
     const searchParams = new URLSearchParams(location.search);
     const title = searchParams.get('title');
     const author = searchParams.get('author');
@@ -33,22 +71,23 @@ export const School_Dashboard = () => {
   
   // Sample data for the requests based on status
   // This would be replaced by actual API calls to your backend
-  const pendingRequests = [
-    { id: 101, name: "Introduction to Chemistry", authors: "Raymond Chang", publisher: "McGraw-Hill", quantity: 5, status: "Pending", request_Date: "Mar 25, 2025" },
-    { id: 102, name: "World History: Modern Times", authors: "Jackson J. Spielvogel", publisher: "Cengage Learning", quantity: 10, status: "Pending", request_Date: "Mar 22, 2025" },
-    { id: 104, name: "The Great Gatsby", authors: "F. Scott Fitzgerald", publisher: "Scribner", quantity: 15, status: "Pending", request_Date: "Mar 28, 2025" },
-  ];
+
+  // const pendingRequests = [
+  //   { id: 101, name: "Introduction to Chemistry", authors: "Raymond Chang", publisher: "McGraw-Hill", quantity: 5, status: "Pending", request_Date: "Mar 25, 2025" },
+  //   { id: 102, name: "World History: Modern Times", authors: "Jackson J. Spielvogel", publisher: "Cengage Learning", quantity: 10, status: "Pending", request_Date: "Mar 22, 2025" },
+  //   { id: 104, name: "The Great Gatsby", authors: "F. Scott Fitzgerald", publisher: "Scribner", quantity: 15, status: "Pending", request_Date: "Mar 28, 2025" },
+  // ];
   
-  const approvedRequests = [
-    { id: 201, name: "Elementary Statistics", authors: "Mario F. Triola", publisher: "Pearson", quantity: 8, status: "Approved", request_Date: "Mar 18, 2025" },
-    { id: 202, name: "Biology: Concepts and Applications", authors: "Cecie Starr", publisher: "Cengage Learning", quantity: 12, status: "Approved", request_Date: "Mar 15, 2025" },
-  ];
+  // const approvedRequests = [
+  //   { id: 201, name: "Elementary Statistics", authors: "Mario F. Triola", publisher: "Pearson", quantity: 8, status: "Approved", request_Date: "Mar 18, 2025" },
+  //   { id: 202, name: "Biology: Concepts and Applications", authors: "Cecie Starr", publisher: "Cengage Learning", quantity: 12, status: "Approved", request_Date: "Mar 15, 2025" },
+  // ];
   
-  const completedRequests = [
-    { id: 301, name: "Romeo and Juliet", authors: "William Shakespeare", publisher: "Folger", quantity: 20, status: "Completed", request_Date: "Mar 10, 2025" },
-    { id: 302, name: "Mathematics for Elementary Teachers", authors: "Sybilla Beckmann", publisher: "Pearson", quantity: 6, status: "Completed", request_Date: "Feb 28, 2025" },
-    { id: 303, name: "Wonder", authors: "R.J. Palacio", publisher: "Knopf Books", quantity: 15, status: "Completed", request_Date: "Mar 05, 2025" },
-  ];
+  // const completedRequests = [
+  //   { id: 301, name: "Romeo and Juliet", authors: "William Shakespeare", publisher: "Folger", quantity: 20, status: "Completed", request_Date: "Mar 10, 2025" },
+  //   { id: 302, name: "Mathematics for Elementary Teachers", authors: "Sybilla Beckmann", publisher: "Pearson", quantity: 6, status: "Completed", request_Date: "Feb 28, 2025" },
+  //   { id: 303, name: "Wonder", authors: "R.J. Palacio", publisher: "Knopf Books", quantity: 15, status: "Completed", request_Date: "Mar 05, 2025" },
+  // ];
   
   // Keeping the search function the same as it redirects to a new URL
   const handleSearch = (e) => {

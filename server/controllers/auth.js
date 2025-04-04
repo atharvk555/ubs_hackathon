@@ -2,6 +2,8 @@ const User = require("../models/UserSchema");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
+const VolunteerOrders=require("../models/VolunteerSchema");
+const Requests=require("../models/requestSchema");
 const SECRET_KEY = process.env.JWT_SECRET;
 const handelSignIn=async (req, res) => {
     try{
@@ -18,7 +20,7 @@ const handelSignIn=async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials" });
     }
   
-    const token =await jwt.sign({ _id: user.id, email: user.email, role: user.role }, SECRET_KEY, {
+    const token =jwt.sign({ _id: user.id, email: user.email, role: user.role }, SECRET_KEY, {
       expiresIn: "48h",
     });
   
@@ -82,4 +84,65 @@ const handelRegisterUser = async (req, res) => {
       res.status(500).json({ message: "Server error", error });
     }
   };
-module.exports={handelRegisterUser,handelUpdateUserProfile,handelSignIn};
+  // contollers for orders
+  const AcceptOrder = async (req, res) => {
+    try {
+      const user_id = req.user.id;
+      const { orderId,order } = req.body;
+      console.log(order);
+      // console.log(user_id,orderId)
+      if (!orderId) {
+        return res.status(400).json({ message: "Order ID is required" });
+      }
+  
+      // Check if the user already has an entry in VolunteerOrders
+      let volunteerOrder = await VolunteerOrders.findOne({ userId: user_id });
+      console.log(volunteerOrder)
+  
+      if (volunteerOrder) {
+        // Append the new order ID if it's not already in the array
+        if (!volunteerOrder.orders.includes(orderId)) {
+          volunteerOrder.orders.push(orderId);
+          volunteerOrder.information.push(order);
+          await volunteerOrder.save();
+        }
+      } else {
+        // Create a new entry if userId is not present
+        volunteerOrder = new VolunteerOrders({
+          userId: user_id,
+          orders: [orderId],
+          information:[order],
+        });
+        await volunteerOrder.save();
+      }
+      const abc=await Requests.findByIdAndUpdate(
+         orderId,
+        { status: "approved" }
+      );
+      return res.status(200).json({ success:true,message: "Order accepted successfully"});
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ success:false,message: "Internal Server Error" });
+    }
+  };
+  const GetVolunteerOrders=async(req,res)=>{
+    try{
+      const userId=req.user.id;
+      const orders=await VolunteerOrders.find({userId:userId});
+      const informationArray = orders.flatMap(order => order.information); 
+
+      // console.log(informationArray); 
+
+      return res.status(200).json({
+        success: true,
+        information: informationArray, // Return the extracted information
+      });
+    }catch(err){
+      console.log(err.message);
+      return res.status(500).json({
+        success:false,
+        message:err.message
+      })
+    }
+  }
+module.exports={handelRegisterUser,handelUpdateUserProfile,handelSignIn,AcceptOrder,GetVolunteerOrders};

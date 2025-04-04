@@ -1,10 +1,12 @@
 const Book = require('../Model/bookschema');
 const Store=require("../models/storeSchema");
+const User=require("../models/UserSchema");
 const mongoose=require('mongoose');
 const BookInventory=require("../models/BookInventorySchema");
 // const Donors= require('../Model/Donor');
 const axios = require("axios");
 const Requests=require('../models/requestSchema');
+const { response } = require('express');
 
 const getBooks = async (req, res) => {
 
@@ -25,7 +27,7 @@ const getBooks = async (req, res) => {
         filter.Publisher = { $regex: Publisher, $options: "i" };
     }
     if (Authors) {
-        filter.Authors = { $in: Authors.split(",") };
+        filter.Authors = { $regex: Authors , $options: "i" };
     }
      const books = await Book.find(filter);
       return res.send(books); 
@@ -79,10 +81,51 @@ const create_request = async (req, res) => {
 //   function to get all requests
 const GetAllRequests=async(req,res)=>{
     try{
-
+        const userId=req?.user.id;
+        const inventory=await Requests.find({School_id:userId});
+        console.log(response);
+        return res.status(200).json({
+            inventory
+        })
     }
     catch(err){
+        return res.status(500).json({
+            success:false,
+            message:"Error in getting inventories"
+        })
+    }
+}
 
+const getPendingRequest=async(req,res)=>{
+    try{
+       
+        const pendingOrders = await Requests.find({ status: "pending" })
+        const orders = await Promise.all(
+            pendingOrders.map(async (order) => {
+              // Fetch related documents manually
+              const inventory = await BookInventory.findById(order.InventoryId).populate("book");
+              const store = await Store.findById(order.StoreId);
+              const school = await User.findById(order.School_id);
+                // console.log(inventory,store,school);
+              return {
+                sourceAddress: store?.address || "N/A",
+                destinationAddress: school?.address || "N/A",
+                title: inventory?.book?.Name || "N/A",
+                author: inventory?.book?.Authors || "N/A",
+                publisher: inventory?.book?.Publisher || "N/A",
+                _id: order._id,
+              };
+            })
+          );
+        return res.status(200).json({
+            orders
+        })
+    }
+    catch(err){
+        return res.status(500).json({
+            success:false,
+            message:"Error in getting inventories"
+        })
     }
 }
 // function to complete inventory request
@@ -177,4 +220,4 @@ const bookSearchInStore = async (req, res) => {
     }
   };
 
-module.exports = {getBooks,create_request,getallbooks,bookSearchInStore,GetAllRequests};
+module.exports = {getBooks,create_request,getallbooks,bookSearchInStore,GetAllRequests,getPendingRequest};
