@@ -52,4 +52,4 @@ def predict_book_genre():
     return jsonify({"predicted_genre": predicted_genre, "extracted_text": extracted_text})
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=False)

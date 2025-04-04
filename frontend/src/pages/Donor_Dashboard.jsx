@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Book, Upload, Check, AlertCircle } from 'lucide-react';
+import { Book, Upload, Check, AlertCircle, RefreshCw } from 'lucide-react';
 import { Navbar } from '../components/Navbar';
 import axios from 'axios';
 import { Backend_url } from '../config';
@@ -19,6 +19,9 @@ export const Donor_Dashboard = () => {
     const [mediaFile, setMediaFile] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitSuccess, setSubmitSuccess] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
+    const [bookImageUrl, setBookImageUrl] = useState(null);
+    const [fetchingBookInfo, setFetchingBookInfo] = useState(false);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -31,10 +34,6 @@ export const Donor_Dashboard = () => {
     const handleImageChange = (e) => {
         const file = e.target.files[0];
         if (file) {
-            // setFormData({
-            //     ...formData,
-            //     book_image: file
-            // });
             setMediaFile(file);
 
             // Create image preview
@@ -74,42 +73,104 @@ export const Donor_Dashboard = () => {
         }
     };
 
+    const handleUploadAndFetchInfo = async () => {
+        if (!mediaFile) return;
+        
+        setIsUploading(true);
+        try {
+            // Upload to S3 first
+            const imageUrl = await uploadToS3(mediaFile);
+            setBookImageUrl(imageUrl);
+            console.log(imageUrl)
+            // Now fetch book info from backend
+            setFetchingBookInfo(true);
+            const bookInfoResponse = await axios.post(`${Backend_url}/api/donor/get_book_info`, {
+                book_image_url: imageUrl
+            })
+            console.log(bookInfoResponse)
+            // Update form with book info if available
+            if (bookInfoResponse.data) {
+                const { title, author, publisher } = bookInfoResponse.data;
+                setFormData(prev => ({
+                    ...prev,
+                    book_title: title || '',
+                    author_name: author || '',
+                    publisher: publisher || '',
+                    book_image: imageUrl
+                }));
+            } else {
+                // Just set the image URL if no book info was found
+                setFormData(prev => ({
+                    ...prev,
+                    book_image: imageUrl
+                }));
+            }
+        } catch (error) {
+            console.error("Error processing image:", error);
+            // Still set the image URL even if book info fetch fails
+            if (bookImageUrl) {
+                setFormData(prev => ({
+                    ...prev,
+                    book_image: bookImageUrl
+                }));
+            }
+        } finally {
+            setIsUploading(false);
+            setFetchingBookInfo(false);
+        }
+    };
+
     useEffect(() => {
         console.log("Updated formData:", formData);
     }, [formData]);
     
-
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
     
         try {
-            const res = await uploadToS3(mediaFile);
-            setFormData((prevData) => ({
-                ...prevData,
-                book_image: res
-            }));
+            // If we already have the book image URL, don't re-upload
+            if (!formData.book_image && mediaFile) {
+                const imageUrl = await uploadToS3(mediaFile);
+                setFormData(prev => ({
+                    ...prev,
+                    book_image: imageUrl
+                }));
+            }
     
-            // Wait for state update before submitting
-            const response=axios.post(`${Backend_url}/api/donor/add_book`,formData,{
-                headers:{
-                    Authorization:localStorage.getItem('token')
+            // Submit the form data to the backend
+            await axios.post(`${Backend_url}/api/donor/add_book`, formData, {
+                headers: {
+                    Authorization: localStorage.getItem('token')
                 }
             });
 
+            console.log('Book donation submitted:', formData);
+            setIsSubmitting(false);
+            setSubmitSuccess(true);
+            
+            // Reset form after successful submission
             setTimeout(() => {
-                console.log('Book donation submitted:', formData);
-                setIsSubmitting(false);
-                setSubmitSuccess(true);
-            }, 500);
+                setFormData({
+                    book_title: '',
+                    author_name: '',
+                    grade: '',
+                    publisher: '',
+                    book_image: null,
+                    condition: 5,
+                    quantity: 1
+                });
+                setPreview(null);
+                setMediaFile(null);
+                setBookImageUrl(null);
+                setSubmitSuccess(false);
+            }, 3000);
         } catch (error) {
             console.error("Error submitting:", error);
             setIsSubmitting(false);
         }
     };
 
-    
     const gradeOptions = [
         'Pre-school', 'Kindergarten',
         'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5',
@@ -145,6 +206,95 @@ export const Donor_Dashboard = () => {
                     ) : null}
 
                     <form onSubmit={handleSubmit} className="space-y-6">
+                        {/* Book Image Upload Section - Moved to the top */}
+                        <div className="bg-blue-50 rounded-lg p-6 border border-blue-100 mb-6">
+                            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                                Upload Book Image <span className="text-sm font-normal text-blue-600">(We'll try to auto-fill details for you!)</span>
+                            </h3>
+                            
+                            <div className="flex flex-col md:flex-row gap-6">
+                                <div className="flex-1">
+                                    <div className="flex items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-6 h-56 relative cursor-pointer">
+                                        {preview ? (
+                                            <div className="relative w-full h-full">
+                                                <img src={preview} alt="Book preview" className="w-full h-full object-contain" />
+                                                <button
+                                                    type="button"
+                                                    className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 transform translate-x-1/2 -translate-y-1/2"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setPreview(null);
+                                                        setMediaFile(null);
+                                                        setBookImageUrl(null);
+                                                        setFormData(prev => ({
+                                                            ...prev,
+                                                            book_image: null
+                                                        }));
+                                                    }}
+                                                >
+                                                    ✕
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <label htmlFor="book_image" className="text-center cursor-pointer">
+                                                <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                                                <p className="mt-1 text-sm text-gray-500">Click to upload or drag and drop</p>
+                                                <p className="text-xs text-gray-500">PNG, JPG, JPEG up to 5MB</p>
+                                            </label>
+                                        )}
+                                        <input
+                                            type="file"
+                                            id="book_image"
+                                            name="book_image"
+                                            accept="image/*"
+                                            onChange={handleImageChange}
+                                            className="hidden"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                                
+                                <div className="flex flex-col justify-center md:w-48">
+                                    <button
+                                        type="button"
+                                        onClick={handleUploadAndFetchInfo}
+                                        disabled={!mediaFile || isUploading}
+                                        className={`w-full px-4 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center justify-center mb-4 ${(!mediaFile || isUploading) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    >
+                                        {isUploading ? (
+                                            <>
+                                                <RefreshCw className="animate-spin mr-2 h-5 w-5" />
+                                                Uploading...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Upload className="mr-2 h-5 w-5" />
+                                                Upload & Identify
+                                            </>
+                                        )}
+                                    </button>
+                                    
+                                    {fetchingBookInfo && (
+                                        <div className="text-sm text-blue-600 flex items-center justify-center animate-pulse">
+                                            <RefreshCw className="animate-spin mr-2 h-4 w-4" />
+                                            Identifying book...
+                                        </div>
+                                    )}
+                                    
+                                    {bookImageUrl && !fetchingBookInfo && (
+                                        <div className="text-sm text-green-600 flex items-center justify-center">
+                                            <Check className="mr-2 h-4 w-4" />
+                                            Image uploaded
+                                        </div>
+                                    )}
+                                    
+                                    <p className="text-xs text-gray-500 mt-3 text-center">
+                                        Upload the image first to auto-detect book information
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
                         <div className="grid md:grid-cols-2 gap-6">
                             <div className="space-y-4">
                                 <div>
@@ -195,7 +345,9 @@ export const Donor_Dashboard = () => {
                                         ))}
                                     </select>
                                 </div>
+                            </div>
 
+                            <div className="space-y-4">
                                 <div>
                                     <label htmlFor="publisher" className="block text-sm font-medium text-gray-700 mb-1">
                                         Publisher *
@@ -210,48 +362,6 @@ export const Donor_Dashboard = () => {
                                         required
                                     />
                                 </div>
-                            </div>
-
-                            <div className="space-y-4">
-                                <div>
-                                    <label htmlFor="book_image" className="block text-sm font-medium text-gray-700 mb-1">
-                                        Book Image *
-                                    </label>
-                                    <div className="flex items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-6 h-48 relative cursor-pointer">
-                                        {preview ? (
-                                            <div className="relative w-full h-full">
-                                                <img src={preview} alt="Book preview" className="w-full h-full object-contain" />
-                                                <button
-                                                    type="button"
-                                                    className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 transform translate-x-1/2 -translate-y-1/2"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        setPreview(null);
-                                                        setFormData({ ...formData, book_image: null });
-                                                    }}
-                                                >
-                                                    ✕
-                                                </button>
-                                            </div>
-                                        ) : (
-                                            <label htmlFor="book_image" className="text-center cursor-pointer">
-                                                <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                                                <p className="mt-1 text-sm text-gray-500">Click to upload or drag and drop</p>
-                                                <p className="text-xs text-gray-500">PNG, JPG, JPEG up to 5MB</p>
-                                            </label>
-                                        )}
-                                        <input
-                                            type="file"
-                                            id="book_image"
-                                            name="book_image"
-                                            accept="image/*"
-                                            onChange={handleImageChange}
-                                            className="hidden"
-                                            required
-                                        />
-                                    </div>
-                                </div>
-
 
                                 <div>
                                     <label htmlFor="condition" className="block text-sm font-medium text-gray-700 mb-1">

@@ -133,5 +133,23 @@ const addBookToInventory = async (req, res) => {
     res.status(500).json({ message: "Server error", error });
   }
 };
-
-module.exports = { addBookToInventory, createDonor };
+const axios=require('axios');
+async function getBookMetaData(req,res){
+  try{
+      const {book_image_url}=req.body;
+      console.log("url",book_image_url);
+      const response=await axios.post(`http://127.0.0.1:5000/predict`,{image_url:book_image_url});
+      console.log(response.data);
+      return res.status(200).json(response.data);
+      // return res.status(200).json({
+      //   success:true,
+      //   response,
+      // })
+  }
+  catch(err){
+    return res.status(500).json({
+      message:err.message
+    })
+  }
+}
+module.exports = { addBookToInventory, createDonor,getBookMetaData};

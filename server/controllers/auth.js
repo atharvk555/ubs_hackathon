@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
 const VolunteerOrders=require("../models/VolunteerSchema");
 const Requests=require("../models/requestSchema");
+const { GiConsoleController } = require("react-icons/gi");
 const SECRET_KEY = process.env.JWT_SECRET;
 const handelSignIn=async (req, res) => {
     try{
@@ -145,4 +146,80 @@ const handelRegisterUser = async (req, res) => {
       })
     }
   }
-module.exports={handelRegisterUser,handelUpdateUserProfile,handelSignIn,AcceptOrder,GetVolunteerOrders};
+
+const Donor=require("../models/DonorSchema")
+  const sendRequestToALLNearby = async (req, res) => {
+    try {
+      const email=req.user.email;
+      const req_data=req.body;
+      console.log(email,req_data);
+      // 1. Find the school
+      
+  
+        // Find all users with role "donor" and select only the email field
+      const donors = await User.find({ role: "donor" }).select("email");
+
+        // Extract emails from the response
+      const emails = donors.map(donor => donor.email);
+     
+
+
+      if (emails.length === 0) {
+        return res.status(404).json({ 
+          success: false, 
+          message: "No active donors found" 
+        });
+      }
+  
+      const nearbyDonors = emails;
+  
+  
+      // 4. Send emails to nearby donors
+      const emailResults = await Promise.allSettled(
+        nearbyDonors.map(donor => {
+          const mailOptions = {
+            from: `"Books4All" <${process.env.EMAIL_USERNAME}>`,
+            to: donor.email,
+            subject: `Book Donation Request`,
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px;">
+                <h2 style="color: #2c3e50;">Book Donation Request</h2>
+                <p>Dear Donor,</p>
+                
+                <p>The school is particularly interested in the following books:</p>
+  
+    
+                
+                <a href="${process.env.APP_URL}/donate/"
+                   style="display: inline-block; background: #3498db; color: white; 
+                          padding: 10px 20px; margin: 15px 0; border-radius: 5px; 
+                          text-decoration: none;">
+                  Respond to Request
+                </a>
+                
+                <p style="font-size: 12px; color: #7f8c8d;">
+                  This request expires in 7 days.
+                </p>
+              </div>
+            `
+          };
+          return transporter.sendMail(mailOptions);
+        })
+      );
+  
+      return res.send({
+        success: true,
+        message: "All messages sent successfully",
+        results: emailResults
+      });
+  
+    } catch (error) {
+      console.error("Error in sendAllRequestToNearby:", error);
+      res.status(500).json({
+        success: false,
+        message: "Internal server error",
+        error: process.env.NODE_ENV === 'development' ? error.message : null
+      });
+    }
+  }; 
+module.exports={handelRegisterUser,handelUpdateUserProfile,handelSignIn,AcceptOrder,GetVolunteerOrders,sendRequestToALLNearby};
