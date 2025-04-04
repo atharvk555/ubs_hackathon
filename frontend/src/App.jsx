@@ -41,33 +41,43 @@ function App() {
         <Route path='/' element={<Home />} />
         <Route path='/login' element={<Login />} />
         <Route path='/signup' element={<Signup />} />
-        <Route path='/search' element={<Search />}></Route>
-        <Route path='/book/:id' element={<Books />}></Route>
-        <Route path='/request' element={<Request />}></Route>
+        <Route path='/search' element={
+          <RoleBasedRoute allowedRole="school">
+          <Search />
+          </RoleBasedRoute>}></Route>
+        <Route path='/book/:id' element={
+          <RoleBasedRoute allowedRole="school">
+          <Books /></RoleBasedRoute>
+          }></Route>
+        <Route path='/request' element={
+          <RoleBasedRoute allowedRole="school">
+            <Request />
+          </RoleBasedRoute>
+          }></Route>
         <Route path='/update_profile' element={
           <ProtectedRoute>
             <Update_Profile />
           </ProtectedRoute>
         } />
         <Route path='/donor_dashboard' element={
-          // <RoleBasedRoute allowedRole="donor">
+          <RoleBasedRoute allowedRole="donor">
             <Donor_Dashboard />
-          // </RoleBasedRoute>
+          </RoleBasedRoute>
         } />
         <Route path='/school_dashboard' element={
-          // <RoleBasedRoute allowedRole="school">
+          <RoleBasedRoute allowedRole="school">
             <School_Dashboard />
-          // </RoleBasedRoute>
+          </RoleBasedRoute>
         } />
         <Route path='/volunteer_dashboard' element={
-          // <RoleBasedRoute allowedRole="volunteer">
+          <RoleBasedRoute allowedRole="volunteer">
             <Volunteer_Dashboard />
-          // </RoleBasedRoute>
+          </RoleBasedRoute>
         } />
         <Route path='/volunteer_order' element={
-          // <RoleBasedRoute allowedRole="volunteer">
+          <RoleBasedRoute allowedRole="volunteer">
             <Volunteer_order />
-          // </RoleBasedRoute>
+          </RoleBasedRoute>
         } />
       </Routes>
     </BrowserRouter>

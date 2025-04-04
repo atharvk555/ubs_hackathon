@@ -1,6 +1,7 @@
 const User = require("../models/UserSchema");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const nodemailer=require('nodemailer')
 const dotenv = require("dotenv");
 const VolunteerOrders=require("../models/VolunteerSchema");
 const Requests=require("../models/requestSchema");
@@ -148,78 +149,76 @@ const handelRegisterUser = async (req, res) => {
   }
 
 const Donor=require("../models/DonorSchema")
+const transporter = nodemailer.createTransport({
+    service: "gmail", // or your email service
+    auth: {
+      user: process.env.EMAIL_USERNAME, // your email
+      pass: process.env.EMAIL_PASSWORD, // your email password or app password
+    },
+  });
   const sendRequestToALLNearby = async (req, res) => {
     try {
-      const email=req.user.email;
-      const req_data=req.body;
-      console.log(email,req_data);
-      // 1. Find the school
-      
-  
+        const email = req.user.email;
+        const req_data = req.body;
+        console.log(email, req_data);
+
         // Find all users with role "donor" and select only the email field
-      const donors = await User.find({ role: "donor" }).select("email");
+        const donors = await User.find({ role: "donor" }).select("email");
 
         // Extract emails from the response
-      const emails = donors.map(donor => donor.email);
-     
+        const emails = donors.map(donor => donor.email);
+        console.log(emails);
 
+        if (emails.length === 0) {
+            return res.status(404).json({ 
+                success: false, 
+                message: "No active donors found" 
+            });
+        }
 
-      if (emails.length === 0) {
-        return res.status(404).json({ 
-          success: false, 
-          message: "No active donors found" 
+        // Send emails to donors
+        const emailResults = await Promise.allSettled(
+            emails.map(donorEmail => {
+                const mailOptions = {
+                    from: `"Books4All" <${process.env.EMAIL_USERNAME}>`,
+                    to: donorEmail,
+                    subject: `Book Donation Request`,
+                    html: `
+                        <div style="font-family: Arial, sans-serif; max-width: 600px;">
+                            <h2 style="color: #2c3e50;">Book Donation Request</h2>
+                            <p>Dear Donor,</p>
+                            <p>The school is particularly interested in the following books:</p>
+                            <a href="${process.env.APP_URL}/donate/"
+                               style="display: inline-block; background: #3498db; color: white; 
+                                      padding: 10px 20px; margin: 15px 0; border-radius: 5px; 
+                                      text-decoration: none;">
+                              Respond to Request
+                            </a>
+                            <p style="font-size: 12px; color: #7f8c8d;">
+                            title:${req_data?.title}   author:${req_data?.author}   publisher:${req_data?.publisher}   quantity:${req_data?.quantity}
+                              This request expires in 7 days.
+                            </p>
+                        </div>
+                    `
+                };
+                return transporter.sendMail(mailOptions); // ✅ Ensure this promise is returned
+            })
+        );
+
+        return res.send({
+            success: true,
+            message: "All messages sent successfully",
+            results: emailResults
         });
-      }
-  
-      const nearbyDonors = emails;
-  
-  
-      // 4. Send emails to nearby donors
-      const emailResults = await Promise.allSettled(
-        nearbyDonors.map(donor => {
-          const mailOptions = {
-            from: `"Books4All" <${process.env.EMAIL_USERNAME}>`,
-            to: donor.email,
-            subject: `Book Donation Request`,
-            html: `
-              <div style="font-family: Arial, sans-serif; max-width: 600px;">
-                <h2 style="color: #2c3e50;">Book Donation Request</h2>
-                <p>Dear Donor,</p>
-                
-                <p>The school is particularly interested in the following books:</p>
-  
-    
-                
-                <a href="${process.env.APP_URL}/donate/"
-                   style="display: inline-block; background: #3498db; color: white; 
-                          padding: 10px 20px; margin: 15px 0; border-radius: 5px; 
-                          text-decoration: none;">
-                  Respond to Request
-                </a>
-                
-                <p style="font-size: 12px; color: #7f8c8d;">
-                  This request expires in 7 days.
-                </p>
-              </div>
-            `
-          };
-          return transporter.sendMail(mailOptions);
-        })
-      );
-  
-      return res.send({
-        success: true,
-        message: "All messages sent successfully",
-        results: emailResults
-      });
-  
+
     } catch (error) {
-      console.error("Error in sendAllRequestToNearby:", error);
-      res.status(500).json({
-        success: false,
-        message: "Internal server error",
-        error: process.env.NODE_ENV === 'development' ? error.message : null
-      });
+        console.error("Error in sendRequestToALLNearby:", error);
+        res.status(500).json({
+            success: false,
+            message: error.message, // ✅ Use 'error' instead of 'err'
+            error: process.env.NODE_ENV === 'development' ? error.message : null
+        });
     }
-  }; 
+};
+
 module.exports={handelRegisterUser,handelUpdateUserProfile,handelSignIn,AcceptOrder,GetVolunteerOrders,sendRequestToALLNearby};
